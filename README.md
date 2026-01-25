@@ -22,7 +22,7 @@ Both approaches result in the same setup and commands.
 ### Option A: Run from the repository
 
 ```bash
-git clone https://github.com/getulionm/ledger-test.git
+git clone https://github.com/getulionm/contact-list-app-test.git
 cd <project-directory>
 npm ci
 npx playwright install
