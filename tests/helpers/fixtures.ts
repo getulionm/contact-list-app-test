@@ -2,11 +2,13 @@ import { test as base, expect, request as pwRequest } from "@playwright/test";
 import type { APIRequestContext, Page, Response } from "@playwright/test";
 import { BASE_URL, PAGE_TIMEOUT_MS } from "./constants";
 import { createNewUser, type NewUser } from "./data";
+import { attachApiErrorLogging } from "./apiLogging";
+import type { ApiClient } from "./apiLogging";
 
 type Session = { user: NewUser; token: string };
 type Use<T> = (value: T) => Promise<void>;
 
-async function attachHttpErrorLogging(page: Page) {
+async function attachPageErrorLogging(page: Page) {
   page.on("response", async (res: Response) => {
     if (!res.url().startsWith(BASE_URL)) return;
     if (res.status() < 400) return;
@@ -31,25 +33,26 @@ async function createApiContext(extraHeaders: Record<string, string> = {}) {
 }
 
 type Fixtures = {
-  api: APIRequestContext;      // unauth API client
+  api: ApiClient;      // unauth API client
   session: Session;            // fresh user + token
-  auth: APIRequestContext;     // authed API client
+  auth: ApiClient;     // authed API client
   authedPage: Page;            // UI page already logged in + lands on /contactList
 };
 
 export const test = base.extend<Fixtures>({
-  api: async ({}, use: Use<APIRequestContext>) => {
-    const api = await createApiContext();
+  api: async ({ }, use: Use<ApiClient>) => {
+    const apiContext = await createApiContext();
+    const api = await attachApiErrorLogging(apiContext);
     try {
       await use(api);
     } finally {
-      await api.dispose();
+      await apiContext.dispose();
     }
   },
 
   // Override page ONLY to attach logging (Lazy: only runs when page is used)
   page: async ({ page }, use: Use<Page>) => {
-    await attachHttpErrorLogging(page);
+    await attachPageErrorLogging(page);
     await use(page);
   },
 
@@ -74,19 +77,20 @@ export const test = base.extend<Fixtures>({
     } finally {
       await api
         .delete("/users/me", { headers: { Authorization: `Bearer ${session.token}` } })
-        .catch(() => {});
+        .catch(() => { });
     }
   },
 
-  auth: async ({ session }, use: Use<APIRequestContext>) => {
-    const auth = await createApiContext({
+  auth: async ({ session }, use: Use<ApiClient>) => {
+    const authContext = await createApiContext({
       Authorization: `Bearer ${session.token}`,
     });
+    const auth = attachApiErrorLogging(authContext)
 
     try {
       await use(auth);
     } finally {
-      await auth.dispose();
+      await authContext.dispose();
     }
   },
 

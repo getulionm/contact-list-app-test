@@ -38,6 +38,4 @@ export async function expectEditContactPrefilledMinimal(page: Page, initial: { f
 
 export async function submitEditBackToDetails(page: Page) {
   await clickAndNavigate(page, selectors.submit, /\/contactDetails/);
-
-  // your test asserts heading visible after submit; keep that in the details helper
 }

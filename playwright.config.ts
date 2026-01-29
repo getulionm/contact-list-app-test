@@ -7,6 +7,9 @@ export default defineConfig({
         extraHTTPHeaders: {
             "Content-Type": "application/json",
         },
+        trace: "retain-on-failure",
+        screenshot: "only-on-failure",
+        video: "retain-on-failure",
     },
     reporter: [["list"], ['html', { open: 'never' }]],
 });
