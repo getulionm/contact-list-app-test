@@ -24,7 +24,7 @@ export async function expectEditContactPrefilledMinimal(page: Page, initial: { f
   await expect(page.locator(selectors.firstName)).toHaveValue(initial.firstName);
   await expect(page.locator(selectors.lastName)).toHaveValue(initial.lastName);
 
-  // empty optional fields in your scenario
+  // empty optional fields in scenario
   await expect(page.locator(selectors.birthdate)).toHaveValue("");
   await expect(page.locator(selectors.email)).toHaveValue("");
   await expect(page.locator(selectors.phone)).toHaveValue("");
@@ -38,6 +38,4 @@ export async function expectEditContactPrefilledMinimal(page: Page, initial: { f
 
 export async function submitEditBackToDetails(page: Page) {
   await clickAndNavigate(page, selectors.submit, /\/contactDetails/);
-
-  // your test asserts heading visible after submit; keep that in the details helper
 }

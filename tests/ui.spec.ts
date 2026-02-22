@@ -1,10 +1,9 @@
-import { test, expect } from "./helpers/fixtures";
+import { test, expect, safeDeleteMe } from "./helpers/fixtures";
 import {
     createNewUser,
     createFullContact,
     createMinimalContact,
 } from "./helpers/data";
-import { PAGE_TIMEOUT_MS } from "./helpers/constants";
 
 import { goToSignup, login } from "./helpers/screens/home";
 import { registerUser } from "./helpers/screens/signup";
@@ -17,6 +16,7 @@ import {
 } from "./helpers/screens/contactList";
 import { expectContactDetailsLoaded, goToEditContact, returnToContactList } from "./helpers/screens/contactDetails";
 import { expectEditContactPrefilledMinimal, submitEditBackToDetails } from "./helpers/screens/editContact";
+
 
 // 1. User Registration
 // ○ Navigate to the registration page.
@@ -35,6 +35,13 @@ test("1) User can register, logout, and log back in", async ({ page }) => {
 
     await login(page, user.email, user.password);
     await expectContactListLoaded(page);
+
+    const token = (await page.context().cookies())
+        .find(c => c.name === "token")?.value;
+
+    if (token) {
+        await safeDeleteMe(page.request, token);
+    }
 });
 
 // 2. Create a New Contact
@@ -54,7 +61,7 @@ test.describe("2) User can create a new contact", () => {
 
         const fullName = `${contact.firstName} ${contact.lastName}`;
         const row = getContactRow(page, fullName);
-        await expect(row).toBeVisible({ timeout: PAGE_TIMEOUT_MS });
+        await expect(row).toBeVisible();
     });
 
     test("with all fields", async ({ authedPage: page }) => {
@@ -71,7 +78,7 @@ test.describe("2) User can create a new contact", () => {
         const fullName = `${contact.firstName} ${contact.lastName}`;
         const row = getContactRow(page, fullName);
 
-        await expect(row).toBeVisible({ timeout: PAGE_TIMEOUT_MS });
+        await expect(row).toBeVisible();
         await expect(row).toContainText(contact.email);
         await expect(row).toContainText(contact.phone);
         await expect(row).toContainText(contact.city);
@@ -112,7 +119,7 @@ test("3) User can edit an existing contact and see updates in the list", async (
     await expectContactListLoaded(page);
 
     const row = getContactRow(page, updatedFullName);
-    await expect(row).toBeVisible({ timeout: PAGE_TIMEOUT_MS });
+    await expect(row).toBeVisible();
     await expect(row).toContainText(updatedContact.firstName);
     await expect(row).toContainText(updatedContact.lastName);
     await expect(row).toContainText(updatedContact.birthdate);
