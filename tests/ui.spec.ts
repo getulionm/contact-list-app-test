@@ -4,7 +4,7 @@ import {
     createFullContact,
     createMinimalContact,
 } from "./helpers/data";
-import { PAGE_TIMEOUT_MS } from "./helpers/constants";
+
 
 import { goToSignup, login } from "./helpers/screens/home";
 import { registerUser } from "./helpers/screens/signup";
@@ -54,7 +54,7 @@ test.describe("2) User can create a new contact", () => {
 
         const fullName = `${contact.firstName} ${contact.lastName}`;
         const row = getContactRow(page, fullName);
-        await expect(row).toBeVisible({ timeout: PAGE_TIMEOUT_MS });
+        await expect(row).toBeVisible();
     });
 
     test("with all fields", async ({ authedPage: page }) => {
@@ -71,7 +71,7 @@ test.describe("2) User can create a new contact", () => {
         const fullName = `${contact.firstName} ${contact.lastName}`;
         const row = getContactRow(page, fullName);
 
-        await expect(row).toBeVisible({ timeout: PAGE_TIMEOUT_MS });
+        await expect(row).toBeVisible();
         await expect(row).toContainText(contact.email);
         await expect(row).toContainText(contact.phone);
         await expect(row).toContainText(contact.city);
@@ -112,7 +112,7 @@ test("3) User can edit an existing contact and see updates in the list", async (
     await expectContactListLoaded(page);
 
     const row = getContactRow(page, updatedFullName);
-    await expect(row).toBeVisible({ timeout: PAGE_TIMEOUT_MS });
+    await expect(row).toBeVisible();
     await expect(row).toContainText(updatedContact.firstName);
     await expect(row).toContainText(updatedContact.lastName);
     await expect(row).toContainText(updatedContact.birthdate);

@@ -72,7 +72,7 @@ test("3) Delete Contact via API and verify removed", async ({ auth }) => {
 
 // EXTEND ON DEMAND
 test('login fails with wrong password', async ({ api, session }) => {
-    const loginRes = await api.post('users/login', {
+    const loginRes = await api.post('/users/login', {
         data: { email: session.user.email, password: 'INCORRECT PASSWORD!!!!!' }
     })
     expect(loginRes.status()).toBe(401)

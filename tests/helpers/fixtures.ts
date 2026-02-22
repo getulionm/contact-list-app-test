@@ -1,6 +1,7 @@
 import { test as base, expect, request as pwRequest } from "@playwright/test";
-import type { APIRequestContext, Page, Response } from "@playwright/test";
-import { BASE_URL, PAGE_TIMEOUT_MS } from "./constants";
+import type { Page, Response, TestInfo } from "@playwright/test";
+import fs from "node:fs";
+
 import { createNewUser, type NewUser } from "./data";
 import { attachApiErrorLogging } from "./apiLogging";
 import type { ApiClient } from "./apiLogging";
@@ -8,9 +9,19 @@ import type { ApiClient } from "./apiLogging";
 type Session = { user: NewUser; token: string };
 type Use<T> = (value: T) => Promise<void>;
 
-async function attachPageErrorLogging(page: Page) {
+function mustBaseURL(testInfo: TestInfo): string {
+  const baseURL = testInfo.project.use?.baseURL;
+  if (!baseURL || typeof baseURL !== "string") {
+    throw new Error("baseURL is not set. Define `use.baseURL` in playwright.config.ts");
+  }
+  return baseURL.replace(/\/$/, "");
+}
+
+async function attachPageErrorLogging(page: Page, testInfo: TestInfo) {
+  const baseURL = mustBaseURL(testInfo);
+
   page.on("response", async (res: Response) => {
-    if (!res.url().startsWith(BASE_URL)) return;
+    if (!res.url().startsWith(baseURL)) return;
     if (res.status() < 400) return;
 
     console.error(`\n[HTTP ${res.status()}] ${res.request().method()} ${res.url()}`);
@@ -22,9 +33,10 @@ async function attachPageErrorLogging(page: Page) {
   });
 }
 
-async function createApiContext(extraHeaders: Record<string, string> = {}) {
+async function newApiContext(testInfo: TestInfo, extraHeaders: Record<string, string> = {}) {
+  const baseURL = mustBaseURL(testInfo);
   return await pwRequest.newContext({
-    baseURL: BASE_URL,
+    baseURL,
     extraHTTPHeaders: {
       "Content-Type": "application/json",
       ...extraHeaders,
@@ -33,26 +45,25 @@ async function createApiContext(extraHeaders: Record<string, string> = {}) {
 }
 
 type Fixtures = {
-  api: ApiClient;      // unauth API client
-  session: Session;            // fresh user + token
-  auth: ApiClient;     // authed API client
-  authedPage: Page;            // UI page already logged in + lands on /contactList
+  api: ApiClient;        // unauth API client
+  session: Session;      // fresh user + token
+  auth: ApiClient;       // authed API client (Bearer)
+  authedPage: Page;      // uses storageState .auth/state.json and lands on /contactList
 };
 
 export const test = base.extend<Fixtures>({
-  api: async ({ }, use: Use<ApiClient>) => {
-    const apiContext = await createApiContext();
-    const api = await attachApiErrorLogging(apiContext);
+  api: async ({ }, use: Use<ApiClient>, testInfo) => {
+    const ctx = await newApiContext(testInfo);
+    const api = await attachApiErrorLogging(ctx);
     try {
       await use(api);
     } finally {
-      await apiContext.dispose();
+      await ctx.dispose();
     }
   },
 
-  // Override page ONLY to attach logging (Lazy: only runs when page is used)
-  page: async ({ page }, use: Use<Page>) => {
-    await attachPageErrorLogging(page);
+  page: async ({ page }, use: Use<Page>, testInfo) => {
+    await attachPageErrorLogging(page, testInfo);
     await use(page);
   },
 
@@ -81,27 +92,40 @@ export const test = base.extend<Fixtures>({
     }
   },
 
-  auth: async ({ session }, use: Use<ApiClient>) => {
-    const authContext = await createApiContext({
+  auth: async ({ session }, use: Use<ApiClient>, testInfo) => {
+    const ctx = await newApiContext(testInfo, {
       Authorization: `Bearer ${session.token}`,
     });
-    const auth = attachApiErrorLogging(authContext)
+
+    const auth = await attachApiErrorLogging(ctx);
 
     try {
       await use(auth);
     } finally {
-      await authContext.dispose();
+      await ctx.dispose();
     }
   },
 
-  authedPage: async ({ page, session }, use: Use<Page>) => {
-    await page.context().addCookies([
-      { name: "token", value: session.token, url: BASE_URL },
-    ]);
+  authedPage: async ({ browser }, use: Use<Page>, testInfo) => {
+    const baseURL = mustBaseURL(testInfo);
 
-    await page.goto(`${BASE_URL}/contactList`, { timeout: PAGE_TIMEOUT_MS });
+    if (!fs.existsSync(".auth/state.json")) {
+      throw new Error("Missing .auth/state.json. Setup didn’t run or failed.");
+    }
+
+    const context = await browser.newContext({
+      baseURL,
+      storageState: ".auth/state.json",
+    });
+
+    const page = await context.newPage();
+    await attachPageErrorLogging(page, testInfo);
+
+    await page.goto("/contactList");
     await use(page);
-  },
+
+    await context.close();
+  }
 });
 
 export { expect };
