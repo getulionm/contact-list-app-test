@@ -16,7 +16,7 @@ test("Advanced: mocks GET /contacts and asserts UI renders deterministic data", 
             stateProvince: "Sutton",
             postalCode: "SM2 5TD",
             country: "UK",
-            owner: "mock@owner.com" // unexisting field
+            owner: "69735da5aa681f0015d28fb7"
         },
         {
             _id: "c2",
@@ -31,7 +31,7 @@ test("Advanced: mocks GET /contacts and asserts UI renders deterministic data", 
             stateProvince: "Lancashire",
             postalCode: "M1 1AA",
             country: "UK",
-            owner: "mock@owner.com" // unexisting field
+            owner: "69735da5aa681f0015d28fb7"
         },
     ];
 
