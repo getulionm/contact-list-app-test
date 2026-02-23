@@ -4,6 +4,7 @@ import { createNewUser, type NewUser } from "./data";
 
 type Session = { user: NewUser; token: string };
 type Use<T> = (value: T) => Promise<void>;
+type Credentials = Pick<NewUser, "email" | "password">;
 
 
 async function attachHttpErrorLogging(page: Page, testInfo: TestInfo) {
@@ -27,7 +28,32 @@ async function createApiContext(testInfo: TestInfo, extraHeaders: Record<string,
   });
 }
 
-export async function safeDeleteMe(api: APIRequestContext, token: string) {
+async function resolveCleanupToken(
+  api: APIRequestContext,
+  auth: string | Credentials
+): Promise<string> {
+  if (typeof auth === "string") return auth;
+
+  const loginRes = await api.post("/users/login", {
+    data: { email: auth.email, password: auth.password },
+  });
+
+  if (loginRes.status() !== 200) {
+    throw new Error(
+      `[cleanup] Failed to login cleanup user (${auth.email}). /users/login -> ${loginRes.status()}`
+    );
+  }
+
+  const body = await loginRes.json().catch(() => ({}));
+  if (!body?.token || typeof body.token !== "string") {
+    throw new Error(`[cleanup] Cleanup login succeeded but token was missing for ${auth.email}.`);
+  }
+
+  return body.token;
+}
+
+export async function safeDeleteMe(api: APIRequestContext, auth: string | Credentials) {
+  const token = await resolveCleanupToken(api, auth);
   const res = await api.delete("/users/me", {
     headers: { Authorization: `Bearer ${token}` },
   });

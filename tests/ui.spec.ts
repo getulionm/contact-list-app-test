@@ -25,22 +25,22 @@ import { expectEditContactPrefilledMinimal, submitEditBackToDetails } from "./he
 test("1) User can register, logout, and log back in", async ({ page }) => {
     const user = createNewUser();
 
-    await page.goto("/");
+    try {
+        await page.goto("/");
 
-    await goToSignup(page);
-    await registerUser(page, user);
-    await expectContactListLoaded(page);
+        await goToSignup(page);
+        await registerUser(page, user);
+        await expectContactListLoaded(page);
 
-    await logout(page);
+        await logout(page);
 
-    await login(page, user.email, user.password);
-    await expectContactListLoaded(page);
-
-    const token = (await page.context().cookies())
-        .find(c => c.name === "token")?.value;
-
-    if (token) {
-        await safeDeleteMe(page.request, token);
+        await login(page, user.email, user.password);
+        await expectContactListLoaded(page);
+    } finally {
+        await safeDeleteMe(page.request, {
+            email: user.email,
+            password: user.password,
+        });
     }
 });
 
