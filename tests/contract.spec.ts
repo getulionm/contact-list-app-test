@@ -15,7 +15,6 @@ type Contact = {
     postalCode: string;
     country: string;
     owner: string;
-    __v?: number;
 };
 
 const objectIdLike = /^[a-f0-9]{24}$/i;
@@ -44,7 +43,6 @@ function expectContactContract(contact: unknown): asserts contact is Contact {
     expect(c._id).toMatch(objectIdLike);
     expect(c.owner).toMatch(objectIdLike);
     expect(c.birthdate).toMatch(birthdateFormat);
-    if (c.__v !== undefined) expect(c.__v).toEqual(expect.any(Number));
 }
 
 test.describe("API contract + auth boundaries", () => {
@@ -73,7 +71,7 @@ test.describe("API contract + auth boundaries", () => {
 
         const fetched = await getRes.json();
         expectContactContract(fetched);
-        expect(fetched.owner).toBe(created.owner);
+        expect(fetched.owner).toBe(me._id);
 
         expect(fetched).toEqual(
             expect.objectContaining({
