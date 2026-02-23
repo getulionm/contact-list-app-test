@@ -16,11 +16,12 @@ type Contact = {
     country: string;
     owner: string;
 };
+type Me = { _id: string };
 
 const objectIdLike = /^[a-f0-9]{24}$/i;
 const birthdateFormat = /^\d{4}-\d{2}-\d{2}$/;
 
-function expectContactContract(contact: unknown): asserts contact is Contact {
+function expectContactContract(contact: Contact) {
     expect(contact).toEqual(
         expect.objectContaining({
             _id: expect.any(String),
@@ -39,10 +40,9 @@ function expectContactContract(contact: unknown): asserts contact is Contact {
         })
     );
 
-    const c = contact as Contact;
-    expect(c._id).toMatch(objectIdLike);
-    expect(c.owner).toMatch(objectIdLike);
-    expect(c.birthdate).toMatch(birthdateFormat);
+    expect(contact._id).toMatch(objectIdLike);
+    expect(contact.owner).toMatch(objectIdLike);
+    expect(contact.birthdate).toMatch(birthdateFormat);
 }
 
 test.describe("API contract + auth boundaries", () => {
@@ -56,20 +56,20 @@ test.describe("API contract + auth boundaries", () => {
 
         const meRes = await auth.get("/users/me");
         expect(meRes.status()).toBe(200);
-        const me = await meRes.json();
+        const me = (await meRes.json()) as Me;
         expect(me?._id).toMatch(objectIdLike);
 
         const createRes = await auth.post("/contacts", { data: payload });
         expect(createRes.status()).toBe(201);
 
-        const created = await createRes.json();
+        const created = (await createRes.json()) as Contact;
         expectContactContract(created);
         expect(created.owner).toBe(me._id);
 
         const getRes = await auth.get(`/contacts/${created._id}`);
         expect(getRes.status()).toBe(200);
 
-        const fetched = await getRes.json();
+        const fetched = (await getRes.json()) as Contact;
         expectContactContract(fetched);
         expect(fetched.owner).toBe(me._id);
 
@@ -81,8 +81,5 @@ test.describe("API contract + auth boundaries", () => {
                 email: payload.email,
             })
         );
-
-        const deleteRes = await auth.delete(`/contacts/${created._id}`);
-        expect(deleteRes.status()).toBe(200);
     });
 });

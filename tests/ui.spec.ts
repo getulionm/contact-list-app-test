@@ -18,11 +18,7 @@ import { expectContactDetailsLoaded, goToEditContact, returnToContactList } from
 import { expectEditContactPrefilledMinimal, submitEditBackToDetails } from "./helpers/screens/editContact";
 
 
-// 1. User Registration
-// ○ Navigate to the registration page.
-// ○ Register a new user with valid credentials.
-// ○ Verify successful registration by doing login.
-test("1) User can register, logout, and log back in", async ({ page }) => {
+test("User can register, logout, and log back in", async ({ page }) => {
     const user = createNewUser();
 
     try {
@@ -44,10 +40,7 @@ test("1) User can register, logout, and log back in", async ({ page }) => {
     }
 });
 
-// 2. Create a New Contact
-// ○ While logged in, create a new contact with valid data.
-// ○ Verify that the new contact appears in the contact list.
-test.describe("2) User can create a new contact", () => {
+test.describe("User can create a new contact", () => {
     test("with minimal fields", async ({ authedPage: page }) => {
         const contact = createMinimalContact();
         await expectContactListLoaded(page);
@@ -88,10 +81,7 @@ test.describe("2) User can create a new contact", () => {
     });
 });
 
-// 3. Edit an Existing Contact
-// ○ Update details of an existing contact.
-// ○ Verify that the changes are reflected in the contact list.
-test("3) User can edit an existing contact and see updates in the list", async ({ authedPage: page }) => {
+test("User can edit an existing contact and see updates in the list", async ({ authedPage: page }) => {
     const initialContact = createMinimalContact();
     const initialFullName = `${initialContact.firstName} ${initialContact.lastName}`;
 

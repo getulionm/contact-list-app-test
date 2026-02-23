@@ -7,6 +7,25 @@ https://thinking-tester-contact-list.herokuapp.com
 
 ---
 
+## 🚀 Start Here (60 seconds)
+
+If you are reviewing this repo for Playwright skills, start with:
+
+1. `tests/helpers/fixtures.ts` → lazy fixture architecture and isolation strategy
+2. `tests/mocks.spec.ts` → deterministic network mocking example
+3. `tests/contract.spec.ts` → contract-level API validation
+4. `.github/workflows/tests.yml` → CI execution + artifact publishing
+
+Quick run:
+
+```bash
+npm ci
+npx playwright install
+npm test
+```
+
+---
+
 ## Requirements
 
 - Node.js 18+

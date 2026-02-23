@@ -3,7 +3,6 @@ import type { APIRequestContext, Page, Response, TestInfo } from "@playwright/te
 import { createNewUser, type NewUser } from "./data";
 
 type Session = { user: NewUser; token: string };
-type Use<T> = (value: T) => Promise<void>;
 type Credentials = Pick<NewUser, "email" | "password">;
 
 
@@ -72,7 +71,7 @@ type Fixtures = {
 };
 
 export const test = base.extend<Fixtures>({
-  api: async ({ }, use: Use<APIRequestContext>, testInfo) => {
+  api: async ({ }, use, testInfo) => {
     const api = await createApiContext(testInfo);
     try {
       await use(api);
@@ -81,12 +80,12 @@ export const test = base.extend<Fixtures>({
     }
   },
 
-  page: async ({ page }, use: Use<Page>, testInfo) => {
+  page: async ({ page }, use, testInfo) => {
     await attachHttpErrorLogging(page, testInfo);
     await use(page);
   },
 
-  session: async ({ }, use: Use<Session>, testInfo) => {
+  session: async ({ }, use, testInfo) => {
     const api = await createApiContext(testInfo);
     const user = createNewUser();
 
@@ -114,7 +113,7 @@ export const test = base.extend<Fixtures>({
     }
   },
 
-  auth: async ({ session }, use: Use<APIRequestContext>, testInfo) => {
+  auth: async ({ session }, use, testInfo) => {
     const auth = await createApiContext(testInfo, {
       Authorization: `Bearer ${session.token}`,
     });
@@ -126,7 +125,7 @@ export const test = base.extend<Fixtures>({
     }
   },
 
-  authedPage: async ({ page, session }, use: Use<Page>, testInfo) => {
+  authedPage: async ({ page, session }, use, testInfo) => {
     const baseURL = testInfo.project.use!.baseURL as string;
 
     await page.context().addCookies([{ name: "token", value: session.token, url: baseURL }]);

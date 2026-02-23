@@ -1,4 +1,4 @@
-import { test, expect } from "./helpers/fixtures";
+import { test, expect, safeDeleteMe } from "./helpers/fixtures";
 import { createNewUser, createFullContact } from "./helpers/data";
 
 test("Auth: returns token and authorizes protected request", async ({ api }) => {
@@ -19,10 +19,7 @@ test("Auth: returns token and authorizes protected request", async ({ api }) => 
         })
     );
 
-    const delUserRes = await api.delete("/users/me", {
-        headers: { Authorization: `Bearer ${body.token}` },
-    });
-    expect(delUserRes.status()).toBe(200);
+    await safeDeleteMe(api, body.token);
 });
 
 test("Contacts: delete returns success message", async ({ auth }) => {
