@@ -19,9 +19,9 @@ type Contact = {
 };
 
 const objectIdLike = /^[a-f0-9]{24}$/i;
-const birthdateFormat = /^\d{4}[-/]\d{2}[-/]\d{2}$/;
+const birthdateFormat = /^\d{4}-\d{2}-\d{2}$/;
 
-function expectContactContract(contact: unknown) {
+function expectContactContract(contact: unknown): asserts contact is Contact {
     expect(contact).toEqual(
         expect.objectContaining({
             _id: expect.any(String),
@@ -40,14 +40,11 @@ function expectContactContract(contact: unknown) {
         })
     );
 
-    const typed = contact as Contact;
-    expect(typed._id).toMatch(objectIdLike);
-    expect(typed.owner).toMatch(objectIdLike);
-    expect(typed.birthdate).toMatch(birthdateFormat);
-
-    if (typed.__v !== undefined) {
-        expect(typed.__v).toEqual(expect.any(Number));
-    }
+    const c = contact as Contact;
+    expect(c._id).toMatch(objectIdLike);
+    expect(c.owner).toMatch(objectIdLike);
+    expect(c.birthdate).toMatch(birthdateFormat);
+    if (c.__v !== undefined) expect(c.__v).toEqual(expect.any(Number));
 }
 
 test.describe("API contract + auth boundaries", () => {
@@ -62,27 +59,28 @@ test.describe("API contract + auth boundaries", () => {
         const meRes = await auth.get("/users/me");
         expect(meRes.status()).toBe(200);
         const me = await meRes.json();
-        expect(me?._id).toEqual(expect.any(String));
+        expect(me?._id).toMatch(objectIdLike);
 
         const createRes = await auth.post("/contacts", { data: payload });
         expect(createRes.status()).toBe(201);
 
-        const created = (await createRes.json()) as Contact;
+        const created = await createRes.json();
         expectContactContract(created);
+        expect(created.owner).toBe(me._id);
 
         const getRes = await auth.get(`/contacts/${created._id}`);
         expect(getRes.status()).toBe(200);
 
         const fetched = await getRes.json();
         expectContactContract(fetched);
+        expect(fetched.owner).toBe(created.owner);
 
-        await expect(fetched).toEqual(
+        expect(fetched).toEqual(
             expect.objectContaining({
                 _id: created._id,
                 firstName: payload.firstName,
                 lastName: payload.lastName,
                 email: payload.email,
-                owner: me._id,
             })
         );
 

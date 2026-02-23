@@ -68,7 +68,7 @@ type Fixtures = {
   api: APIRequestContext;      // unauth API client
   session: Session;            // fresh user + token
   auth: APIRequestContext;     // authed API client
-  authedPage: Page;            // UI page already logged in + lands on /contactList
+  authedPage: Page;            // UI page already logged in + lands on /contactList (app's landing page after login)
 };
 
 export const test = base.extend<Fixtures>({
