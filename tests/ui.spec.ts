@@ -18,6 +18,7 @@ import { expectContactDetailsLoaded, goToEditContact, returnToContactList } from
 import { expectEditContactPrefilledMinimal, submitEditBackToDetails } from "./helpers/screens/editContact";
 
 
+test.describe("UI", { tag: "@ui" }, () => {
 test("User can register, logout, and log back in", async ({ page }) => {
     const user = createNewUser();
 
@@ -119,4 +120,5 @@ test("User can edit an existing contact and see updates in the list", async ({ a
     await expect(row).toContainText(updatedContact.stateProvince);
     await expect(row).toContainText(updatedContact.postalCode);
     await expect(row).toContainText(updatedContact.country);
+});
 });

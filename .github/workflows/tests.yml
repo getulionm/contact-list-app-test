@@ -5,20 +5,25 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      suite:
+        description: "Suite to run"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - ui
+          - api
+          - custom
       grep:
-        description: "Optional Playwright grep filter (example: @ui-smoke or register)"
+        description: "Optional custom grep (used when suite=custom)"
         required: false
         type: string
 
 jobs:
-  test-matrix:
+  tests:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        project: [chromium, firefox, webkit]
-        shard: ["1/2", "2/2"]
 
     steps:
       - name: Checkout
@@ -44,20 +49,32 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Run Playwright tests (matrix + shard)
+      - name: Run Playwright tests
         shell: bash
         run: |
           set -euo pipefail
 
-          GREP="${{ github.event.inputs.grep || '' }}"
-          PW_ARGS=(
-            --project "${{ matrix.project }}"
-            --shard "${{ matrix.shard }}"
-          )
+          SUITE="${{ github.event.inputs.suite || 'all' }}"
+          CUSTOM_GREP="${{ github.event.inputs.grep || '' }}"
+          PW_ARGS=()
 
-          if [[ -n "${GREP// }" ]]; then
-            PW_ARGS+=(--grep "$GREP")
-          fi
+          case "$SUITE" in
+            ui)
+              PW_ARGS+=(--grep "@ui")
+              ;;
+            api)
+              PW_ARGS+=(--grep "@api")
+              ;;
+            custom)
+              if [[ -z "${CUSTOM_GREP// }" ]]; then
+                echo "suite=custom requires a non-empty grep input."
+                exit 1
+              fi
+              PW_ARGS+=(--grep "$CUSTOM_GREP")
+              ;;
+            *)
+              ;;
+          esac
 
           echo "Resolved Playwright args: ${PW_ARGS[*]}"
           npx playwright test "${PW_ARGS[@]}"
@@ -66,7 +83,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-artifacts-${{ matrix.project }}-shard-${{ matrix.shard }}
+          name: playwright-artifacts
           path: |
             playwright-report
             test-results

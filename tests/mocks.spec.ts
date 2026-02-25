@@ -1,7 +1,8 @@
 import { test, expect } from "./helpers/fixtures";
 import { expectContactListLoaded, getContactRow } from "./helpers/screens/contactList";
 
-test("Advanced: mocks GET /contacts and asserts UI renders deterministic data", async ({ page }) => {
+test.describe("Mocks", { tag: "@ui" }, () => {
+    test("Advanced: mocks GET /contacts and asserts UI renders deterministic data", async ({ page }) => {
     const mockedContacts = [
         {
             _id: "c1",
@@ -79,4 +80,5 @@ test("Advanced: mocks GET /contacts and asserts UI renders deterministic data", 
     }
 
     expect(intercepted).toBe(true);
+    });
 });

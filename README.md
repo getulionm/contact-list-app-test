@@ -14,7 +14,7 @@ If you are reviewing this repo for Playwright skills, start with:
 1. `tests/helpers/fixtures.ts` → lazy fixture architecture and isolation strategy
 2. `tests/mocks.spec.ts` → deterministic network mocking example
 3. `tests/contract.spec.ts` → contract-level API validation
-4. `.github/workflows/tests.yml` → CI browser matrix (Chromium/Firefox/WebKit), sharding, and artifact publishing
+4. `.github/workflows/tests.yml` -> simple CI runs + manual tag-based trigger and artifact publishing
 
 Quick run:
 
@@ -72,6 +72,15 @@ npx playwright test tests/ui.spec.ts
 
 # API tests only
 npx playwright test tests/api.spec.ts
+```
+
+### Run by tags
+```bash
+# All UI tests
+npx playwright test --grep "@ui"
+
+# All API tests
+npx playwright test --grep "@api"
 ```
 
 ### View HTML test report
@@ -231,11 +240,11 @@ Eliminates common UI flakiness caused by timing issues
 
 ### GitHub Actions Workflow
 
-The project includes automated testing on every push and pull request:
+The project includes:
 
-1. **Build**: Creates Docker image with all dependencies
-2. **Test Execution**: Runs tests in isolated container
-3. **Reporting**: Uploads HTML report as artifact
+1. **Automatic runs** on every push and pull request
+2. **Manual run trigger** (`Run workflow`) with suite selection: `all`, `ui`, `api`, or `custom` grep
+3. **Reporting** via uploaded artifacts (`playwright-report`, `test-results`)
 
 ### Accessing Test Reports
 
@@ -244,16 +253,11 @@ The project includes automated testing on every push and pull request:
 - Download the `playwright-report` artifact
 - Extract and open `index.html`
 
-### Docker Support
+### Manual workflow examples
 
-Tests can run in Docker for consistent environments:
-```bash
-# Build image
-docker build -t pw-tests .
-
-# Run tests
-docker run --rm pw-tests
-```
+- `suite=ui` to run only `@ui` tests
+- `suite=api` to run only `@api` tests
+- `suite=custom`, `grep=@ui|@api` for custom filters
 
 ---
 
@@ -311,3 +315,5 @@ Separated concerns clearly (fixtures, data builders, screen helpers), used descr
 - **GitHub Actions** - CI/CD automation
 
 ---
+
+

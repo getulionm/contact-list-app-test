@@ -45,7 +45,7 @@ function expectContactContract(contact: Contact) {
     expect(contact.birthdate).toMatch(birthdateFormat);
 }
 
-test.describe("API contract + auth boundaries", () => {
+test.describe("API contract + auth boundaries", { tag: "@api" }, () => {
     test("returns 401 when contacts endpoint is called without auth", async ({ api }) => {
         const res = await api.get("/contacts");
         expect(res.status()).toBe(401);
