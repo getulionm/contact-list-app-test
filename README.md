@@ -14,7 +14,7 @@ If you are reviewing this repo for Playwright skills, start with:
 1. `tests/helpers/fixtures.ts` → lazy fixture architecture and isolation strategy
 2. `tests/mocks.spec.ts` → deterministic network mocking example
 3. `tests/contract.spec.ts` → contract-level API validation
-4. `.github/workflows/tests.yml` → CI execution + artifact publishing
+4. `.github/workflows/tests.yml` → CI browser matrix (Chromium/Firefox/WebKit), sharding, and artifact publishing
 
 Quick run:
 
