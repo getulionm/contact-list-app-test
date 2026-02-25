@@ -83,6 +83,18 @@ npx playwright test --grep "@ui"
 npx playwright test --grep "@api"
 ```
 
+### Grep recipes
+```bash
+# One specific flow by title text
+npx playwright test --grep "edit an existing contact"
+
+# Mocking capability only
+npx playwright test --grep "mocks GET /contacts"
+
+# Combine filters (regex OR)
+npx playwright test --grep "@api|mocks"
+```
+
 ### View HTML test report
 ```bash
 npx playwright show-report
@@ -243,7 +255,7 @@ Eliminates common UI flakiness caused by timing issues
 The project includes:
 
 1. **Automatic runs** on every push and pull request
-2. **Manual run trigger** (`Run workflow`) with suite selection: `all`, `ui`, `api`, or `custom` grep
+2. **Manual run trigger** (`Run workflow`) with suite selection: `all`, `ui`, `api`
 3. **Reporting** via uploaded artifacts (`playwright-report`, `test-results`)
 
 ### Accessing Test Reports
@@ -257,7 +269,7 @@ The project includes:
 
 - `suite=ui` to run only `@ui` tests
 - `suite=api` to run only `@api` tests
-- `suite=custom`, `grep=@ui|@api` for custom filters
+- `suite=all` to run the full suite
 
 ---
 
