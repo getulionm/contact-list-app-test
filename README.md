@@ -186,6 +186,8 @@ Fixtures are defined in:
 | `page`       | UI page with HTTP error logging attached |
 | `authedPage` | UI page already authenticated and landed on `/contactList` |
 
+Use `authedPage` for faster authenticated UI flows, and `page` when a test must attach network routes before initial navigation (for example `mocks.spec.ts`).
+
 ---
 
 ### How Tests Opt In

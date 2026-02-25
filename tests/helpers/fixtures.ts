@@ -65,9 +65,9 @@ export async function safeDeleteMe(api: APIRequestContext, auth: string | Creden
 
 type Fixtures = {
   api: APIRequestContext;      // unauth API client
-  session: Session;            // fresh user + token
+  session: Session;            // creates isolated user/token for each test
   auth: APIRequestContext;     // authed API client
-  authedPage: Page;            // UI page already logged in + lands on /contactList (app's landing page after login)
+  authedPage: Page;            // speed fixture: starts authenticated at /contactList
 };
 
 export const test = base.extend<Fixtures>({
@@ -81,6 +81,7 @@ export const test = base.extend<Fixtures>({
   },
 
   page: async ({ page }, use, testInfo) => {
+    // network-control fixture: starts unauthenticated and does not auto-navigate
     await attachHttpErrorLogging(page, testInfo);
     await use(page);
   },
