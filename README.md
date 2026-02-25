@@ -7,7 +7,7 @@ Application under test: https://thinking-tester-contact-list.herokuapp.com
 ## What this repo demonstrates
 
 - **Scalable fixture architecture** with lazy setup and per-test isolation.
-- **Deterministic UI tests** using network interception/mocking.
+- **Dual UI strategy** udeterministic mock-based UI tests and full end-to-end UI journeys.
 - **API contract + auth boundary checks** to catch backend regressions early.
 
 ## Start Here (2-minute review path)
