@@ -1,22 +1,25 @@
 # Playwright Test Automation – Contact List Application
 
-This project contains a small Playwright test suite validating a contact management application through both UI and API tests.
+Playwright showcase for a contact management app with focused UI + API coverage.
 
-Application under test:  
-https://thinking-tester-contact-list.herokuapp.com
+Application under test: https://thinking-tester-contact-list.herokuapp.com
 
----
+## What this repo demonstrates
 
-## 🚀 Start Here (60 seconds)
+- **Scalable fixture architecture** with lazy setup and per-test isolation.
+- **Deterministic UI tests** using network interception/mocking.
+- **API contract + auth boundary checks** to catch backend regressions early.
 
-If you are reviewing this repo for Playwright skills, start with:
+## Start Here (2-minute review path)
 
-1. `tests/helpers/fixtures.ts` → lazy fixture architecture and isolation strategy
-2. `tests/mocks.spec.ts` → deterministic network mocking example
-3. `tests/contract.spec.ts` → contract-level API validation
-4. `.github/workflows/tests.yml` -> simple CI runs + manual tag-based trigger and artifact publishing
+If you're evaluating this repo quickly, read these files in order:
 
-Quick run:
+1. `tests/helpers/fixtures.ts`
+2. `tests/mocks.spec.ts`
+3. `tests/contract.spec.ts`
+4. `.github/workflows/tests.yml`
+
+## Quick Run
 
 ```bash
 npm ci
@@ -24,310 +27,45 @@ npx playwright install
 npm test
 ```
 
----
-
-## Requirements
-
-- Node.js 18+
-- npm
-
----
-
-## Getting Started
-
-You can run the project either from the Git repository or from a ZIP archive.  
-Both approaches result in the same setup and commands.
-
-### Option A: Run from the repository
+Useful focused runs:
 
 ```bash
-git clone https://github.com/getulionm/contact-list-app-test.git
-cd <project-directory>
-npm ci
-npx playwright install
-```
-
-### Option B: Run from a ZIP archive
-Download and extract the project archive.
-Open a terminal in the extracted project folder.
-Install dependencies and browsers:
-```bash
-npm ci
-npx playwright install
-```
-
----
-
-## ▶️ Running Tests
-
-### Run all tests
-```bash
-npm test
-```
-
-### Run specific test files
-```bash
-# UI tests only
-npx playwright test tests/ui.spec.ts
-
-# API tests only
-npx playwright test tests/api.spec.ts
-```
-
-### Run by tags
-```bash
-# All UI tests
 npx playwright test --grep "@ui"
-
-# All API tests
 npx playwright test --grep "@api"
-```
-
-### Grep recipes
-```bash
-# One specific flow by title text
-npx playwright test --grep "edit an existing contact"
-
-# Mocking capability only
-npx playwright test --grep "mocks GET /contacts"
-
-# Combine filters (regex OR)
-npx playwright test --grep "@api|mocks"
-```
-
-### View HTML test report
-```bash
 npx playwright show-report
 ```
 
-### Run tests in headed mode (see browser)
-```bash
-npx playwright test --headed
-```
+## Capability Matrix
 
-### Run tests in debug mode
-```bash
-npx playwright test --debug
-```
+| File | Demonstrates | Why it matters |
+|---|---|---|
+| `tests/helpers/fixtures.ts` | Lazy fixtures: `api`, `session`, `auth`, `authedPage` | Fast, isolated, parallel-safe execution |
+| `tests/mocks.spec.ts` | `route.fulfill` + payload assertion for `/contacts` | Deterministic UI behavior without backend dependency |
+| `tests/contract.spec.ts` | Contract assertions + auth boundary checks | Early detection of API shape/auth regressions |
+| `.github/workflows/tests.yml` | CI on push/PR/manual + artifacts + report deploy | Easy verification and reviewer-friendly evidence |
 
----
+## Test Strategy (high level)
 
-## 🧪 Test Coverage
+- Single `test` export extended with reusable fixtures.
+- Tests opt into only what they need by fixture destructuring.
+- Most UI tests use API-seeded auth for speed; one flow validates full UI auth journey.
+- Data is generated per test and cleaned up in teardown.
 
-### UI Tests (`tests/ui.spec.ts`)
+## Key Engineering Decisions
 
-1. **User Registration & Authentication**
-   - Register new user with valid credentials
-   - Logout and login functionality
-   - Session persistence validation
+### 1) Auth speed vs coverage
+Most UI tests skip repetitive signup/login by authenticating via API fixture and injecting token cookie. One dedicated UI test still validates signup → logout → login end-to-end.
 
-2. **Contact Creation - Minimal Fields**
-   - Create contact with only required fields (firstName, lastName)
-   - Verify contact appears in list
+### 2) Test isolation
+Each test gets fresh data (user/session), with cleanup in teardown to avoid shared-state pollution.
 
-3. **Contact Creation - All Fields**
-   - Create contact with complete information
-   - Verify all data displays correctly in contact list
+### 3) Deterministic confidence (mocks + contract)
+UI mocking test proves rendering against known payloads; contract test validates field shape and protected endpoint boundaries.
 
-4. **Contact Editing**
-   - Update existing contact details
-   - Verify changes reflect in contact list
+## CI
 
-### API Tests (`tests/api.spec.ts`)
+GitHub Actions workflow supports:
 
-1. **User Authentication**
-   - API registration and login
-   - Token generation and validation
-
-2. **Contact Creation via API**
-   - Create contact through API endpoint
-   - Retrieve and verify contact by ID
-
-3. **Contact Deletion via API**
-   - Delete contact through API
-   - Verify removal confirmation
-
----
-
-## 🏗️ Design Choices
-
-### 🎯 Objective: Scalable Test Isolation
-
-- Each test runs with its **own isolated data**
-- No shared state between tests
-- Automatic cleanup handled in **fixture teardown**
-- Fully **parallel-safe**
-- **No UI dependency for API tests**
-
----
-
-### 1. Unified Lazy Fixtures Pattern
-
-All tests use a **single `test` export**, powered by **Playwright’s lazy fixture resolution**.
-
-Fixtures are **only created when explicitly requested by a test**, which guarantees:
-
-- No browser launch for API-only tests
-- No authentication setup unless required
-- No unnecessary setup or duplicated logic
-- Clear, intention-revealing test code
-
-Fixtures are defined in:
-
----
-
-### Available Fixtures
-
-| Fixture       | Purpose |
-|--------------|--------|
-| `api`        | Unauthenticated API client (auto-disposed per test) |
-| `session`    | Fresh user + auth token created via API (auto-cleaned) |
-| `auth`       | Pre-authenticated API client using session token |
-| `page`       | UI page with HTTP error logging attached |
-| `authedPage` | UI page already authenticated and landed on `/contactList` |
-
-Use `authedPage` for faster authenticated UI flows, and `page` when a test must attach network routes before initial navigation (for example `mocks.spec.ts`).
-
----
-
-### How Tests Opt In
-
-Tests declare their needs explicitly by destructuring fixtures:
-
-```ts
-// API test (no authentication)
-test("unauth api test", async ({ api }) => {});
-
-// API test (authenticated)
-test("auth api test", async ({ auth }) => {});
-
-// UI test (logged out)
-test("unauth ui test", async ({ page }) => {});
-
-// UI test (logged in)
-test("auth ui test", async ({ authedPage }) => {});
-```
-
-**Benefits**:  
-- A single base.extend() instead of multiple test exports
-- No duplication between API / UI / authenticated variants
-- Test intent is described by fixture usage
-- Easy to extend with new capabilities (e.g. adminSession, mobilePage)
-
----
-
-### 2. Screen Helpers Pattern
-
-UI interactions are organised by screen in `tests/helpers/screens/`.  
-Each module exposes focused actions for a single page, keeping tests readable and stable.
-
-**Screen Modules:**
-
-- `home.ts` – Landing page actions (signup, login)
-- `signup.ts` – User registration form
-- `contactList.ts` – Contact list actions and assertions
-- `addContact.ts` – Add contact form (fill + submit)
-- `contactDetails.ts` – Contact details page (edit, return to list)
-- `editContact.ts` – Edit contact form (verify prefilled values, submit)
-
-**Benefits**  
-> Maintainability – Selector changes are isolated to one file  
-Readability – Tests read like user journeys  
-Reusability – Common flows shared across tests  
-Encapsulation – Selectors never leak into test files  
-
----
-
-### 3. Navigation Helper
-- `clickAndNavigate()` in tests/helpers/ui.ts wraps click + URL wait + DOM ready check  
-Prevents race conditions where navigation starts before waits are attached  
-Eliminates common UI flakiness caused by timing issues
-
-### 4. Data Generation Strategy
-- Dynamic test data using `slug()` function (random 6-character strings)
-- Prevents test collisions in shared environments
-- Separate factories for minimal vs full contacts (UI vs API use cases)
-
----
-
-## 🔄 CI/CD Pipeline
-
-### GitHub Actions Workflow
-
-The project includes:
-
-1. **Automatic runs** on every push and pull request
-2. **Manual run trigger** (`Run workflow`) with suite selection: `all`, `ui`, `api`
-3. **Reporting** via uploaded artifacts (`playwright-report`, `test-results`)
-
-### Accessing Test Reports
-
-- Navigate to the Actions tab in GitHub
-- Select the workflow run
-- Download the `playwright-report` artifact
-- Extract and open `index.html`
-
-### Manual workflow examples
-
-- `suite=ui` to run only `@ui` tests
-- `suite=api` to run only `@api` tests
-- `suite=all` to run the full suite
-
----
-
-## 💡 Challenges & Solutions
-
-### 1: Application Stability
-**Issue**: Public demo application occasionally slow or unavailable  
-**Solution**:  
-Relied on Playwright’s built-in auto-waiting and explicit assertions, added HTTP response logging for easier debugging, and handled errors gracefully in fixtures to keep failures diagnosable rather than flaky.
-
----
-
-### 2: Test Data Management  
-**Issue**: Hard-coded test data causes collisions in a shared environment  
-**Solution**:  
-Introduced small data builders that generate unique users and contacts per test, combined with automatic cleanup to prevent data accumulation between runs.
-
----
-
-### 3: Authentication Flow (speed vs coverage)
-**Issue**: Repeating signup/login through the UI in every test would be slow and noisy.
-
-**Solution**: UI tests now use API-seeded authentication via fixtures (`session`, `testAuth`):
-- A fresh user is created and logged in via API to get a token
-- The token is injected into the browser as a `token` cookie
-- The test navigates directly to `/contactList`, the apps' landing page
-
-A single UI test remains to validate the full signup → logout → login journey end-to-end.
-
-**Result**: Faster UI execution with no loss of authentication coverage, and a clean separation between auth validation and feature testing.
-
-
----
-
-### 4: Test Isolation
-**Issue**: Tests interfering with each other  
-**Solution**:  
-Custom fixtures ensure a fresh user per test with automatic teardown, eliminating shared state and keeping tests fully isolated.
-
----
-
-### 5: Maintainability
-**Issue**: Keeping tests readable and easy to evolve  
-**Solution**:  
-Separated concerns clearly (fixtures, data builders, screen helpers), used descriptive helper functions, and leveraged TypeScript for safer refactoring and better IDE support.
-
-
----
-
-## 📚 Tools & Technologies
-
-- **Playwright** - Modern end-to-end testing framework
-- **TypeScript** - Type-safe test code
-- **Docker** - Containerized test execution
-- **GitHub Actions** - CI/CD automation
-
----
-
-
+- Automatic runs on **push** and **pull_request**
+- Manual suite selection via **workflow_dispatch**: `all | ui | api`
+- Artifact publishing (`playwright-report`, `test-results`) and report deploy
