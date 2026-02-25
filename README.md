@@ -1,4 +1,4 @@
-# Playwright Test Automation – Contact List Application
+# Playwright Test Automation - Contact List Application
 
 Playwright showcase for a contact management app with focused UI + API coverage.
 
@@ -65,7 +65,7 @@ npx playwright show-report
 ## Key Engineering Decisions
 
 ### 1) Auth speed vs coverage
-Most UI tests skip repetitive signup/login by authenticating via API fixture and injecting token cookie. One dedicated UI test still validates signup → logout → login end-to-end.
+Most UI tests skip repetitive signup/login by authenticating via API fixture and injecting token cookie. One dedicated UI test still validates signup -> logout -> login end-to-end.
 
 ### 2) Test isolation
 Each test gets fresh data (user/session), with cleanup in teardown to avoid shared-state pollution.
@@ -79,4 +79,6 @@ GitHub Actions workflow supports:
 
 - Automatic runs on **push** and **pull_request**
 - Manual suite selection via **workflow_dispatch**: `all | ui | api`
-- Artifact publishing (`playwright-report`, `test-results`) and report deploy
+- Artifact publishing (`playwright-report`, `test-results`)
+- GitHub Pages report deploy on `main` branch (non-PR runs)
+

@@ -56,7 +56,8 @@ test.describe("Mocks", { tag: "@ui" }, () => {
         // ✅ Network determinism proof: wait for the exact GET /contacts response
         const contactsResponsePromise = page.waitForResponse((res) => {
             if (res.request().method() !== "GET") return false;
-            return res.url().endsWith("/contacts") && res.status() === 200;
+            const url = new URL(res.url());
+            return url.pathname.endsWith("/contacts") && res.status() === 200;
         });
 
         await page.goto("/contactList");

@@ -14,21 +14,21 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "api",
+      name: "integration",
       grep: /@api/,
     },
     {
-      name: "chromium",
+      name: "e2e-chromium",
       grep: /@ui/,
       use: { ...devices["Desktop Chrome"] },
     },
     {
-      name: "firefox",
+      name: "e2e-firefox",
       grep: /@ui/,
       use: { ...devices["Desktop Firefox"] },
     },
     {
-      name: "webkit",
+      name: "e2e-webkit",
       grep: /@ui/,
       use: { ...devices["Desktop Safari"] },
     },
