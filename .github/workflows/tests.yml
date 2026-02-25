@@ -15,19 +15,12 @@ on:
           - ui
           - api
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
 jobs:
   tests:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
@@ -58,9 +51,6 @@ jobs:
       - name: Install Playwright browsers
         if: steps.pw-cache.outputs.cache-hit != 'true'
         run: npx playwright install
-
-      - name: Install Playwright system dependencies
-        run: npx playwright install-deps
 
       - name: Run Playwright tests
         shell: bash
@@ -95,15 +85,21 @@ jobs:
           retention-days: 14
 
       - name: Upload Playwright HTML report to Pages artifact
-        if: always()
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
           path: playwright-report
 
   deploy-report:
-    if: always()
+    if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: tests
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
