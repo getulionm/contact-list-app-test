@@ -3,29 +3,71 @@ name: Playwright Tests
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      grep:
+        description: "Optional Playwright grep filter (example: @ui-smoke or register)"
+        required: false
+        type: string
 
 jobs:
-  tests:
+  test-matrix:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit]
+        shard: ["1/2", "2/2"]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build -t pw-tests .
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
 
-      - name: Run tests
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests (matrix + shard)
+        shell: bash
         run: |
-          docker run --rm \
-            -v ${{ github.workspace }}/playwright-report:/app/playwright-report \
-            -v ${{ github.workspace }}/test-results:/app/test-results \
-            pw-tests
+          set -euo pipefail
+
+          GREP="${{ github.event.inputs.grep || '' }}"
+          PW_ARGS=(
+            --project "${{ matrix.project }}"
+            --shard "${{ matrix.shard }}"
+          )
+
+          if [[ -n "${GREP// }" ]]; then
+            PW_ARGS+=(--grep "$GREP")
+          fi
+
+          echo "Resolved Playwright args: ${PW_ARGS[*]}"
+          npx playwright test "${PW_ARGS[@]}"
 
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-artifacts
+          name: playwright-artifacts-${{ matrix.project }}-shard-${{ matrix.shard }}
           path: |
             playwright-report
             test-results
+          retention-days: 14
