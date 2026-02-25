@@ -15,9 +15,11 @@ Application under test: https://thinking-tester-contact-list.herokuapp.com
 If you're evaluating this repo quickly, read these files in order:
 
 1. `tests/helpers/fixtures.ts`
-2. `tests/mocks.spec.ts`
-3. `tests/contract.spec.ts`
-4. `.github/workflows/tests.yml`
+2. `tests/ui.spec.ts`
+3. `tests/mocks.spec.ts`
+4. `tests/api.spec.ts`
+5. `tests/contract.spec.ts`
+6. `.github/workflows/tests.yml`
 
 ## Quick Run
 
@@ -40,9 +42,18 @@ npx playwright show-report
 | File | Demonstrates | Why it matters |
 |---|---|---|
 | `tests/helpers/fixtures.ts` | Lazy fixtures: `api`, `session`, `auth`, `authedPage` | Fast, isolated, parallel-safe execution |
+| `tests/ui.spec.ts` | Core E2E user journeys (auth flow, create, edit) | Shows realistic end-to-end coverage of business-critical UI paths |
 | `tests/mocks.spec.ts` | `route.fulfill` + payload assertion for `/contacts` | Deterministic UI behavior without backend dependency |
+| `tests/api.spec.ts` | Functional API checks (auth token, create/delete behavior) | Verifies endpoint behavior and expected success paths |
 | `tests/contract.spec.ts` | Contract assertions + auth boundary checks | Early detection of API shape/auth regressions |
 | `.github/workflows/tests.yml` | CI on push/PR/manual + artifacts + report deploy | Easy verification and reviewer-friendly evidence |
+
+## Test Types at a Glance
+
+- **UI E2E (`tests/ui.spec.ts`)**: validates real user flows through the UI against the live app.
+- **UI Mocks (`tests/mocks.spec.ts`)**: validates UI rendering deterministically with controlled network payloads.
+- **API Functional (`tests/api.spec.ts`)**: validates core API behavior and happy-path operations.
+- **API Contract (`tests/contract.spec.ts`)**: validates response structure, id formats, and auth boundaries.
 
 ## Test Strategy (high level)
 
