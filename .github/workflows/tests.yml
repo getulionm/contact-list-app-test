@@ -60,7 +60,7 @@ jobs:
         run: npx playwright install
 
       - name: Install Playwright system dependencies
-        run: npx playwright install-deps
+        run: npx playwright install-deps chromium firefox webkit
 
       - name: Run Playwright tests
         shell: bash
