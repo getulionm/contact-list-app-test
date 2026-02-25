@@ -129,12 +129,17 @@ export const test = base.extend<Fixtures>({
     const baseURL = testInfo.project.use!.baseURL as string;
 
     await page.context().addCookies([{ name: "token", value: session.token, url: baseURL }]);
-    await page.goto("/contactList",);
+    const contactsResponse = page.waitForResponse((r) => {
+      if (r.request().method() !== "GET") return false;
+      if (![200, 401].includes(r.status())) return false;
 
-    // explicit auth-expired failure message
-    const res = await page.waitForResponse(
-      (r) => r.request().method() === "GET" && r.url().endsWith("/contacts") && [200, 401].includes(r.status())
-    );
+      const url = new URL(r.url());
+      return url.pathname.endsWith("/contacts");
+    });
+
+    await page.goto("/contactList");
+
+    const res = await contactsResponse;
     if (res.status() === 401) {
       throw new Error(
         [

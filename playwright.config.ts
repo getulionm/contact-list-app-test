@@ -14,15 +14,22 @@ export default defineConfig({
   },
   projects: [
     {
+      name: "api",
+      grep: /@api/,
+    },
+    {
       name: "chromium",
+      grep: /@ui/,
       use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "firefox",
+      grep: /@ui/,
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "webkit",
+      grep: /@ui/,
       use: { ...devices["Desktop Safari"] },
     },
   ],
